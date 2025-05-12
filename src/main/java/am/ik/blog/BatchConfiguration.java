@@ -1,11 +1,12 @@
 package am.ik.blog;
 
-import java.time.LocalDate;
-
 import am.ik.blog.entry.EntryProps;
-import am.ik.blog.lognroll.LognrollProps;
-import com.fasterxml.jackson.databind.JsonNode;
 import am.ik.blog.github.GithubProps;
+import am.ik.blog.lognroll.LognrollProps;
+import am.ik.spring.http.client.RetryableClientHttpRequestInterceptor;
+import com.fasterxml.jackson.databind.JsonNode;
+import java.time.LocalDate;
+import java.util.Set;
 import org.zalando.logbook.Logbook;
 import org.zalando.logbook.spring.LogbookClientHttpRequestInterceptor;
 
@@ -22,6 +23,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.util.backoff.ExponentialBackOff;
 import org.springframework.web.client.RestClient;
 
 @Configuration
@@ -29,8 +31,23 @@ public class BatchConfiguration {
 
 	@Bean
 	public RestClientCustomizer restClientCustomizer(Logbook logbook) {
-		return restClientBuilder -> restClientBuilder.requestFactory(new JdkClientHttpRequestFactory())
-			.requestInterceptor(new LogbookClientHttpRequestInterceptor(logbook));
+		return restClientBuilder -> {
+			ExponentialBackOff backOff = new ExponentialBackOff();
+			backOff.setMultiplier(2);
+			backOff.setMaxElapsedTime(180_000);
+			restClientBuilder.requestFactory(new JdkClientHttpRequestFactory())
+				.requestInterceptor(new RetryableClientHttpRequestInterceptor(backOff, Set.of( //
+						400 /* SQL_BUSY */ , //
+						408 /* Request Timeout */, //
+						425 /* Too Early */, //
+						429 /* Too Many Requests */, //
+						500 /* Internal Server Error */, //
+						502 /* Bad Gateway */, //
+						503 /* Service Unavailable */, //
+						504 /* Gateway Timeout */
+			)))
+				.requestInterceptor(new LogbookClientHttpRequestInterceptor(logbook));
+		};
 	}
 
 	@Bean
