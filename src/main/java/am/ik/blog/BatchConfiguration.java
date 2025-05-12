@@ -5,6 +5,7 @@ import am.ik.blog.github.GithubProps;
 import am.ik.blog.lognroll.LognrollProps;
 import am.ik.spring.http.client.RetryableClientHttpRequestInterceptor;
 import com.fasterxml.jackson.databind.JsonNode;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Set;
 import org.zalando.logbook.Logbook;
@@ -34,10 +35,12 @@ public class BatchConfiguration {
 		return restClientBuilder -> {
 			ExponentialBackOff backOff = new ExponentialBackOff();
 			backOff.setMultiplier(2);
-			backOff.setMaxElapsedTime(180_000);
-			restClientBuilder.requestFactory(new JdkClientHttpRequestFactory())
+			backOff.setMaxElapsedTime(300_000);
+			JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory();
+			requestFactory.setReadTimeout(Duration.ofSeconds(300));
+			restClientBuilder.requestFactory(requestFactory)
 				.requestInterceptor(new RetryableClientHttpRequestInterceptor(backOff, Set.of( //
-						400 /* SQL_BUSY */ , //
+						400 /* SQLITE_BUSY */ , //
 						408 /* Request Timeout */, //
 						425 /* Too Early */, //
 						429 /* Too Many Requests */, //
