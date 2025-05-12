@@ -27,7 +27,7 @@ jobs:
     - name: Run the docker image
       run: |
         export TZ=Asia/Tokyo
-        days_to_subtract=$(( $(date +%u) - 1 ))
+        days_to_subtract=$(( $(date +%u) - 1 + 7 ))
         monday_date=$(date -d "$(date +%Y-%m-%d) -$days_to_subtract days" +%Y-%m-%d)
         cat <<EOF > envfile
         MANAGEMENT_OPENTELEMETRY_RESOURCEATTRIBUTES_GITHUB_REPOSITORY=${GITHUB_REPOSITORY}
