@@ -8,6 +8,19 @@ jobs:
   run-batch:
     runs-on: ubuntu-latest
     steps:
+    - name: Import Secrets
+      id: import-secrets
+      uses: hashicorp/vault-action@v3.3.0
+      with:
+        exportToken: true
+        exportEnv: true
+        method: jwt
+        url: ${{ secrets.VAULT_ADDR }}
+        role: cicd
+        secrets: |
+          kv/data/cicd/spring_batch_metadata SPRING_DATASOURCE_URL;
+          kv/data/cicd/spring_batch_metadata SPRING_DATASOURCE_USERNAME;
+          kv/data/cicd/spring_batch_metadata SPRING_DATASOURCE_PASSWORD;
     - name: Run the docker image
       run: |
         export TZ=Asia/Tokyo
@@ -23,6 +36,9 @@ jobs:
         LOGNROLL_APIURL=${{ secrets.LOGNROLL_APIURL }}
         LOGNROLL_ACCESSTOKEN=${{ secrets.LOGNROLL_ACCESSTOKEN }}
         ENTRY_APIURL=${{ secrets.ENTRY_APIURL }}
+        SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
+        SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
+        SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
         EOF
         docker run --rm \
           -e BPL_JAVA_NMT_ENABLED=false \
@@ -30,4 +46,5 @@ jobs:
           --env-file envfile \
           --pull always \
           ghcr.io/${{ github.repository }}:jvm \
+          --spring.datasource.driver-class-name=org.postgresql.Driver \
           reportStartDate=$monday_date,java.time.LocalDate
