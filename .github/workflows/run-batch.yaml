@@ -27,8 +27,9 @@ jobs:
     - name: Run the docker image
       run: |
         export TZ=Asia/Tokyo
-        days_to_subtract=$(( $(date +%u) - 1 + 7 ))
+        days_to_subtract=$(( $(date +%u) - 1 + 14 ))
         monday_date=$(date -d "$(date +%Y-%m-%d) -$days_to_subtract days" +%Y-%m-%d)
+        today=$(date +%Y-%m-%d)
         cat <<EOF > envfile
         MANAGEMENT_OPENTELEMETRY_RESOURCEATTRIBUTES_GITHUB_REPOSITORY=${GITHUB_REPOSITORY}
         MANAGEMENT_OPENTELEMETRY_RESOURCEATTRIBUTES_GITHUB_SHA=${GITHUB_SHA}
@@ -51,4 +52,5 @@ jobs:
           --pull always \
           ghcr.io/${{ github.repository }}:jvm \
           --spring.datasource.driver-class-name=org.postgresql.Driver \
-          reportStartDate=$monday_date,java.time.LocalDate
+          reportStartDate=$monday_date,java.time.LocalDate \
+          runDate=$today
