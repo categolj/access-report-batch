@@ -27,7 +27,7 @@ jobs:
     - name: Run the docker image
       run: |
         export TZ=Asia/Tokyo
-        days_to_subtract=$(( $(date +%u) - 1 + 14 ))
+        days_to_subtract=$(( $(date +%u) - 1 + 21 ))
         monday_date=$(date -d "$(date +%Y-%m-%d) -$days_to_subtract days" +%Y-%m-%d)
         today=$(date +%Y-%m-%d)
         cat <<EOF > envfile
