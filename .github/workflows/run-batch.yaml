@@ -7,6 +7,9 @@ on:
 jobs:
   run-batch:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     steps:
     - name: Import Secrets
       id: import-secrets
