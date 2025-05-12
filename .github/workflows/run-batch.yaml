@@ -42,7 +42,7 @@ jobs:
         SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
         SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
         SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
-        JAVA_TOOL_OPTIONS="-Duser.timezone=Asia/Tokyo -Duser.country=JP -Duser.language=ja -Dfile.encoding=UTF-8"
+        JAVA_TOOL_OPTIONS=-Duser.timezone=Asia/Tokyo -Duser.country=JP -Duser.language=ja -Dfile.encoding=UTF-8
         EOF
         docker run --rm \
           -e BPL_JAVA_NMT_ENABLED=false \
