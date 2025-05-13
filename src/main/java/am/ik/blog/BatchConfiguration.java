@@ -82,7 +82,7 @@ public class BatchConfiguration {
 	@Bean
 	public Job accessCounterReportJob(JobRepository jobRepository, Step step1,
 			JobCompletionNotificationListener listener) {
-		return new JobBuilder("accessCounterReportJob", jobRepository).listener(listener).start(step1).build();
+		return new JobBuilder("AccessCounterReportJob", jobRepository).listener(listener).start(step1).build();
 	}
 
 	@Bean
