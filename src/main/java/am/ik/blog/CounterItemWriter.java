@@ -56,9 +56,12 @@ public class CounterItemWriter implements ItemWriter<CounterItem> {
 		Map<Integer, ? extends List<? extends CounterItem>> countersByEntryId = items.stream()
 			.collect(Collectors.groupingBy(CounterItem::entryId, TreeMap::new, toList()));
 		Set<Integer> entryIds = countersByEntryId.keySet();
-		List<Entry> entries = StreamSupport.stream(Objects.requireNonNull(
-				this.entryClient.get().uri("/entries?entryIds={entryIds}", entryIds).retrieve().body(JsonNode.class))
-			.spliterator(), false)
+		List<Entry> entries = StreamSupport
+			.stream(Objects.requireNonNull(this.entryClient.get()
+				.uri("/entries?entryIds={entryIds}",
+						entryIds.stream().map(String::valueOf).collect(Collectors.joining(",")))
+				.retrieve()
+				.body(JsonNode.class)).spliterator(), false)
 			.map(node -> new Entry(node.get("entryId").asInt(),
 					new FrontMatter(node.get("frontMatter").get("title").asText())))
 			.toList();
