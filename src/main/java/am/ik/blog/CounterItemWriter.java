@@ -1,5 +1,12 @@
 package am.ik.blog;
 
+import am.ik.blog.entry.Entry;
+import am.ik.blog.entry.FrontMatter;
+import am.ik.blog.github.Commit;
+import am.ik.blog.github.Committer;
+import am.ik.blog.github.CreateContentRequestBuilder;
+import am.ik.blog.github.CreateContentRequestBuilders;
+import com.fasterxml.jackson.databind.JsonNode;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -12,20 +19,10 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-
-import am.ik.blog.entry.Entry;
-import am.ik.blog.entry.FrontMatter;
-import am.ik.blog.github.Commit;
-import com.fasterxml.jackson.databind.JsonNode;
-import am.ik.blog.github.Committer;
-import am.ik.blog.github.CreateContentRequestBuilder;
-import am.ik.blog.github.CreateContentRequestBuilders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.http.MediaType;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 
@@ -59,22 +56,9 @@ public class CounterItemWriter implements ItemWriter<CounterItem> {
 		Map<Integer, ? extends List<? extends CounterItem>> countersByEntryId = items.stream()
 			.collect(Collectors.groupingBy(CounterItem::entryId, TreeMap::new, toList()));
 		Set<Integer> entryIds = countersByEntryId.keySet();
-		List<Entry> entries = StreamSupport
-			.stream(Objects.requireNonNull(this.entryClient.post()
-				.uri("/graphql")
-				.contentType(MediaType.APPLICATION_JSON)
-				.body("""
-						{
-						    "query": "query getEntries($first: Int, $after: String, $tenantId: String, $entryIds: [ID]) { getEntries(first: $first, after: $after, tenantId: $tenantId, entryIds: $entryIds) { edges { node { entryId frontMatter { title } } } pageInfo { endCursor } } }",
-						    "variables": {
-						      "entryIds": %s
-						    }
-						  }
-						"""
-					.formatted(entryIds))
-				.retrieve()
-				.body(JsonNode.class)).get("data").get("getEntries").get("edges").spliterator(), false)
-			.map(node -> node.get("node"))
+		List<Entry> entries = StreamSupport.stream(Objects.requireNonNull(
+				this.entryClient.get().uri("/entries?entryIds={entryIds}", entryIds).retrieve().body(JsonNode.class))
+			.spliterator(), false)
 			.map(node -> new Entry(node.get("entryId").asInt(),
 					new FrontMatter(node.get("frontMatter").get("title").asText())))
 			.toList();
