@@ -1,9 +1,9 @@
 name: Run Spring Batch
 on:
   workflow_dispatch: { }
-  schedule:
+  # schedule:
   # 23:50 JST
-  - cron: '50 14 * * *'
+  # - cron: '50 14 * * *'
 jobs:
   run-batch:
     runs-on: ubuntu-latest
